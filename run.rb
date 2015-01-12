@@ -51,6 +51,15 @@ else
   puts "#{monitored_lights.size} lights #{message}"
 end
 
+def repo_status(travis, slug)
+  repo = travis.repo(slug)
+  master = repo.branch('master')
+  master.state
+rescue => e
+  puts "had an error fetching the status of repo:#{slug}, moving on"
+  raise
+end
+
 def update_light(hue, light_id, state)
   case state
   when 'passed'
@@ -60,18 +69,22 @@ def update_light(hue, light_id, state)
   end
 rescue => e
   puts "had an error updating light:#{light_id}, moving on"
+  raise
 end
 
-puts "Starting monitoring: #{monitored_lights.collect { |ml| ml["repo"] }}"
+puts "Starting monitoring: #{monitored_lights.collect { |ml| ml["repo"] }}\n\n"
 travis = Travis::Client.new
 loop do
   travis.clear_cache
   monitored_lights.each do |ml|
-    puts "checking status of #{ml["repo"]}"
-    repo = travis.repo(ml["repo"])
-    master = repo.branch('master')
-    puts "the most recent master build on #{ml["repo"]} #{master.state}"
-    update_light(hue, ml["light_id"], master.state)
+    begin
+      puts "checking status of #{ml["repo"]}"
+      state = repo_status(travis, ml["repo"])
+      puts "the most recent master build on #{ml["repo"]} #{state}"
+      update_light(hue, ml["light_id"], state)
+    rescue => e
+      # nothing for now
+    end
   end
   sleep 3
 end
