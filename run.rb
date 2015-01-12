@@ -31,9 +31,9 @@ rescue Hue::LinkButtonNotPressed => e
   exit
 end
 
-transition_time = 2
-passed = { hue: 25500, brightness: 255, saturation: 255 }
-failed = { hue: 65535, brightness: 255, saturation: 255 }
+TRANSITION_TIME = 2
+PASSED = { hue: 25500, brightness: 255, saturation: 255 }
+FAILED = { hue: 65535, brightness: 255, saturation: 255 }
 
 file = File.read('settings.json')
 monitored_lights = JSON.parse(file)['lights']
@@ -51,6 +51,17 @@ else
   puts "#{monitored_lights.size} lights #{message}"
 end
 
+def update_light(hue, light_id, state)
+  case state
+  when 'passed'
+    hue.light(light_id).set_state PASSED, TRANSITION_TIME
+  when 'failed'
+    hue.light(light_id).set_state FAILED, TRANSITION_TIME
+  end
+rescue => e
+  puts "had an error updating light:#{light_id}, moving on"
+end
+
 puts "Starting monitoring: #{monitored_lights.collect { |ml| ml["repo"] }}"
 travis = Travis::Client.new
 loop do
@@ -60,12 +71,7 @@ loop do
     repo = travis.repo(ml["repo"])
     master = repo.branch('master')
     puts "the most recent master build on #{ml["repo"]} #{master.state}"
-    case master.state
-    when 'passed'
-      hue.light(ml["light_id"]).set_state passed
-    when 'failed'
-      hue.light(ml["light_id"]).set_state failed
-    end
+    update_light(hue, ml["light_id"], master.state)
   end
-  sleep 2
+  sleep 3
 end
