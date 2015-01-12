@@ -54,6 +54,7 @@ end
 puts "Starting monitoring: #{monitored_lights.collect { |ml| ml["repo"] }}"
 travis = Travis::Client.new
 loop do
+  travis.clear_cache
   monitored_lights.each do |ml|
     puts "checking status of #{ml["repo"]}"
     repo = travis.repo(ml["repo"])
