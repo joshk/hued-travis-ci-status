@@ -1,4 +1,4 @@
-Travis CI in all the Huws
+Travis CI in all the Rainbow Huws
 ===
 
 A little app which syncs the status of projects you are testing on travis-ci.org to your [Philips Hue][1] lights.
