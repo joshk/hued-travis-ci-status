@@ -26,8 +26,6 @@ bundle exec ruby ruby.rb
 
 ### To Do:
 
-
-- [ ] support for travis-ci.com
 - [ ] support for Travsi CI Enterprise
 - [ ] flash the light when it changes from Passing to Failing
 - [ ] clean up the scripts
